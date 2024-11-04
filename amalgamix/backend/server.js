@@ -1,13 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import services from "./services.js";
 
+services.connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/api', (req, res) => {
+app.get('/', (req, res) => {
     res.json({ message: 'Hello from Express!' });
 });
 
