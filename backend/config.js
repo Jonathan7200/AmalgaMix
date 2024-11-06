@@ -1,0 +1,5 @@
+export default {
+    env: {
+        MONGO: "mongodb+srv://kbeltr03:amalgamix@amalgamix.8s9v2.mongodb.net/?retryWrites=true&w=majority&appName=Amalgamix"
+    }
+};
