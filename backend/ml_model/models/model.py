@@ -3,9 +3,9 @@ from helper_functions import *
 import pandas as pd
 import numpy as np
 import pickle
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
 
-model = load_model('nn_model_74.h5')
+model = joblib.load('model_74.pkl')
 
 predict_playlist_genre(model, playlist_data)
