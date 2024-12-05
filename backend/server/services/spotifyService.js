@@ -6,7 +6,7 @@ import 'dotenv/config';
 const spotifyService = {
     authenticate: async () => {
         const response = await axios({
-            method: 'post'
+            method: 'post',
             url: 'https://accounts.spotify.com/api/token',
             headers: {
                 'Content-Type' : 'application/'
@@ -14,3 +14,5 @@ const spotifyService = {
         })
     }
 }
+
+export default spotifyService;

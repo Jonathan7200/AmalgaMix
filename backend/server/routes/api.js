@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { submitPlaylist } from '../controllers/recommendationController.js';
+import { submitPlaylist, getRecommendations, testMLService } from '../controllers/recommendationController.js';
 
 const router = express.Router();
 
