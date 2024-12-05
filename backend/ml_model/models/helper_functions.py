@@ -1,22 +1,22 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import pickle
+from keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
-import tensorflow as tf
-from tensorflow import keras
-
 
 def predict_song_genre(nn_model, song_data):
-  with open('scaler.pkl', 'rb') as f:
-      scaler = pickle.load(f)
+    with open('scaler.pkl', 'rb') as f:
+        scaler = pickle.load(f)
+    label_encoder = joblib.load('label_encoder.pkl')
 
-  preprocessed_song = preprocess_song(song_data, scaler)
-  predict_top_genres(nn_model, preprocessed_song, label_encoder)
+    preprocessed_song = preprocess_song(song_data, scaler)
+    predict_top_genres(nn_model, preprocessed_song, label_encoder)
 
 def predict_playlist_genre(nn_model, playlist_data, k=3):
     # Load the pre-fitted scaler
     with open('scaler.pkl', 'rb') as f:
         scaler = pickle.load(f)
+    label_encoder = joblib.load('label_encoder.pkl')
 
     # Aggregate the playlist with preprocessing
     aggregated_playlist = aggregate_playlist(playlist_data, scaler)
@@ -46,6 +46,10 @@ def predict_top_genres(model, song_features, label_encoder, k):
 # this is the important function. Relies on pre loaded scaler * USE THE RIGHT ONE
 
 def preprocess_song(song_data, scaler):
+    numeric_cols = [
+        "popularity", "duration_ms", "danceability", "energy", "loudness",
+        "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"
+    ]
 
     key_columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     meter_columns = [1, 3, 4, 5]
@@ -92,7 +96,7 @@ def aggregate_playlist(playlist_data, scaler):
         processed_songs.append(processed_song)
 
     playlist_df = pd.concat(processed_songs, ignore_index=True)
-    
+
     aggregated_numeric = playlist_df[numeric_cols].mean()
     dominant_key = playlist_df[[f'key_{col}' for col in key_columns]].mean().idxmax()
     dominant_meter = playlist_df[[f'meter_{col}' for col in meter_columns]].mean().idxmax()

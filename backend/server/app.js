@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import apiRoutes from './routes/api.js'; 
 import axios from 'axios';
-import services from './services.js';
+import services from './services/dbService.js';
 import 'dotenv/config';
 
 services.connectDB();

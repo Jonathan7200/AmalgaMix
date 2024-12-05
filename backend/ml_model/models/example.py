@@ -1,11 +1,12 @@
 from helper_functions import *
-from tensorflow.keras.models import load_model
+import pandas as pd
+import numpy as np
 import pickle
+from keras.models import load_model
+from sklearn.preprocessing import LabelEncoder
 
 model = load_model('nn_model_74.h5')
-
-with open('scaler.pkl', 'rb') as f:
-    scaler = pickle.load(f)
+print(model.get_config())
 
 # Example playlist data
 playlist_data = [
