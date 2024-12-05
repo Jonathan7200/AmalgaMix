@@ -95,15 +95,21 @@ const PlaylistInput = ({ accessToken }) => {
       
       const response = await axios.post('/api/submit-playlist', {
         playlistId: selectedPlaylist,
-        tracks: tracks,
+        tracks: tracks.map((trackItem) => ({
+          id: trackItem.track.id,
+          name: trackItem.track.name,
+          artist: trackItem.track.artists[0]?.name || 'Unknown',
+        })), // Extract relevant track data
       });
-     
+  
+      console.log('Backend Response:', response.data);
+      alert('Playlist submitted successfully!');
     } catch (error) {
       console.error('Error submitting playlist:', error);
-      setError('Failed to submit playlist. Please try again.');
+      alert('Failed to submit playlist. Please try again.');
     }
   };
-  
+    
 
   if (error) {
     return <p>{error}</p>;

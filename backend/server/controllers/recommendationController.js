@@ -3,6 +3,21 @@ import spotifyService from '../services/spotifyService.js';
 import mlService from '../services/mlService.js';
 
 // Test ML service 
+
+export const submitPlaylist = async (req, res) => {
+  const { playlistId, tracks } = req.body;
+
+  if (!playlistId || !tracks) {
+    return res.status(400).json({ error: 'Missing playlist ID or tracks' });
+  }
+
+  console.log('Received Playlist ID:', playlistId);
+  console.log('Received Tracks:', tracks);
+
+  // (Optional) Process playlist data or forward it to ML service
+  res.status(200).json({ message: 'Playlist received successfully!', data: { playlistId, tracks } });
+};
+
 export const testMLService = async (req, res) => {
   try {
     const response = await mlService.testConnection();
