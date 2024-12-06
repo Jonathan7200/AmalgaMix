@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Recommendations from './Recomendations';
 
 const PlaylistInput = ({ accessToken }) => {
   const [playlists, setPlaylists] = useState([]);
@@ -15,6 +16,7 @@ const PlaylistInput = ({ accessToken }) => {
       window.location.href = '/'; // Redirect to login if no token available
       return;
     }
+    console.log('Access Token:', accessToken);
 
     const fetchPlaylists = async () => {
       setIsLoadingPlaylists(true);
@@ -135,9 +137,6 @@ const PlaylistInput = ({ accessToken }) => {
   };
   
 
-  if (error) {
-    return <p>{error}</p>;
-  }
 
   return (
     <div>
@@ -185,6 +184,7 @@ const PlaylistInput = ({ accessToken }) => {
       )}
     </div>
   );
+
 };
 
 export default PlaylistInput;
