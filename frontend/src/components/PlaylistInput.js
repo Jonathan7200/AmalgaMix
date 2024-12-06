@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Recommendations from './Recomendations';
+import "../styles.css"
 
 const PlaylistInput = ({ accessToken }) => {
   const [playlists, setPlaylists] = useState([]);
