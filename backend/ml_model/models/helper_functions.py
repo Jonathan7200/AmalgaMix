@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
+import joblib
 
 def predict_song_genre(nn_model, song_data):
     with open('scaler.pkl', 'rb') as f:

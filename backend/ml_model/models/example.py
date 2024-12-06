@@ -5,6 +5,8 @@ import joblib
 import pickle
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelEncoder
+import joblib
+
 
 model = joblib.load('model_74.pkl')
 

@@ -89,11 +89,12 @@ const PlaylistInput = ({ accessToken }) => {
   }
 
   const handleSubmit = async () => {
+    
     try {
      
       console.log('Submitting playlist:', selectedPlaylist);
       
-      const response = await axios.post('/api/submit-playlist', {
+      const response = await axios.post('http://localhost:5000/api/submit-playlist', {
         playlistId: selectedPlaylist,
         tracks: tracks.map((trackItem) => ({
           id: trackItem.track.id,

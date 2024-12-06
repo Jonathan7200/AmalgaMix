@@ -6,6 +6,7 @@ import mlService from '../services/mlService.js';
 
 export const submitPlaylist = async (req, res) => {
   const { playlistId, tracks } = req.body;
+  console.log(`Playlist being submitted: ${playlistId},`)
 
   if (!playlistId || !tracks) {
     return res.status(400).json({ error: 'Missing playlist ID or tracks' });
@@ -16,6 +17,8 @@ export const submitPlaylist = async (req, res) => {
 
   // (Optional) Process playlist data or forward it to ML service
   res.status(200).json({ message: 'Playlist received successfully!', data: { playlistId, tracks } });
+  
+
 };
 
 export const testMLService = async (req, res) => {

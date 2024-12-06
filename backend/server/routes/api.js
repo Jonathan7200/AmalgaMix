@@ -2,6 +2,7 @@ import express from 'express';
 import axios from 'axios';
 import { submitPlaylist, getRecommendations, testMLService } from '../controllers/recommendationController.js';
 
+
 const router = express.Router();
 
 router.post('/submit-playlist', submitPlaylist);
@@ -20,6 +21,9 @@ router.get('/test-ml-service', async (req, res) => {
   }
 });
 
+router.get('/submit-playlist', (req, res) => {
+  res.status(200).json({ message: 'This is a placeholder for POST /api/submit-playlist' });
+});
 router.post('/get-recommendations', getRecommendations);
 
 
