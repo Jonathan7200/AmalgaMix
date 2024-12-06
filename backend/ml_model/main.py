@@ -6,6 +6,8 @@ import pickle
 import os
 import pandas as pd
 
+from helper_functions import predict_playlist_genre
+
 app = FastAPI()
 
 # Allow CORS from React app
@@ -36,7 +38,7 @@ except Exception as e:
 @app.on_event("startup")
 def load_model():
     global model
-    model_path = os.getenv('MODEL_PATH', 'models/model.pkl')
+    model_path = os.getenv('MODEL_PATH', 'models/model_74.pkl')
     try:
         with open(model_path, 'rb') as f:
             model = pickle.load(f)
@@ -87,26 +89,13 @@ async def get_songs(request: GenresRequest):
 
 @app.post("/predict")
 async def predict(data: Features):
-    #TESTING IF POST WORKING, COMMENT OUT, The second part should maybe work??
-    test_prediction = data.features
-    return {"genre": test_prediction}
+    try:
+        playlist_data = data.features
+        res = predict_playlist_genre(model, playlist_data)
 
-    #TO TEST RUN copy and paste:
-    #Invoke-RestMethod -Uri http://localhost:8000/predict `  -Method POST ` -ContentType "application/json" ` -Body '{"features": [0.0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}'
-
-
-    # try:
-        
-    #     #ADD a way to convert features herre into an array of some sort 
-    #     input_features = np.array([data.features])  ## ADD HERE
-    #     prediction = model.predict(input_features)
-    #     predicted_genre = prediction[0] #MAKE SURE GENRE IS IN FIRST SPOT
-    #     return {"Predicted Genre": predicted_genre}
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
-    
-
-
+    except Exception as e:
+        print(f"Error during prediction: {e}")
+        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
     
 
 

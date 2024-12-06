@@ -24,8 +24,10 @@ router.get('/test-ml-service', async (req, res) => {
 });
 
 router.get('/get-recommendations', getRecommendations);
+router.post('/get-recommendations', getRecommendations);
 
 router.get('/test-recommendations', testRecommendations);
 
+router.post('/test-recommendations', testRecommendations);
 
 export default router;

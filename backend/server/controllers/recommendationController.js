@@ -106,22 +106,42 @@ export const getRecommendations = async (req, res) => {
   try {
     const { playlist } = req.body;
 
-    const songFeatures =  getSongFeatures(playlist);
+    if (!playlist || !Array.isArray(playlist)) {
+      return res.status(400).json({ error: 'Invalid playlist data provided.' });
+    }
 
-    // send features to ML service for genre prediction
+    // Extract song features
+    const songFeatures = playlist.map((song) => ({
+      explicit: song.explicit,
+      mode: song.mode,
+      popularity: song.popularity,
+      danceability: song.danceability,
+      energy: song.energy,
+      loudness: song.loudness,
+      speechiness: song.speechiness,
+      acousticness: song.acousticness,
+      instrumentalness: song.instrumentalness,
+      liveness: song.liveness,
+      valence: song.valence,
+      tempo: song.tempo,
+      duration_ms: song.duration_ms,
+      key: `key_${song.key}`,
+      meter: `meter_${song.time_signature}`,
+    }));
+
+    // Send features to the ML service for genre prediction
     const genrePrediction = await mlService.predictGenre(songFeatures);
 
-    // Get recommendations from Spotify
-    const recommendations = await datasetServices.getRecommendations(genrePrediction);
+    // Use the predicted genre to get recommendations from Spotify
+    const recommendations = await datasetServices.getRecommendations(genrePrediction.genre);
 
-    // Send recommendations to frontend
+    // Send recommendations back to the frontend
     res.status(200).json({ recommendations });
   } catch (error) {
-    console.error('Error getting recommendations:', error);
+    console.error('Error getting recommendations:', error.message);
     res.status(500).json({ error: 'Failed to get recommendations' });
   }
 };
-
 // Meant to test the abilities of getRecommendation, excluding predictGenre and getSongFeatures
 export const testRecommendations = async (req, res) => {
   try {
