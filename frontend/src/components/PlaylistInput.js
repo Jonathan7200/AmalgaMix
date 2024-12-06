@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Recommendations from './Recommendations';
-import "../styles.css";
+import "../styles.css"
 
 const PlaylistInput = ({ accessToken }) => {
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState('');
   const [tracks, setTracks] = useState([]);
-  const [tracksToRecommend, setTracksToRecommend] = useState(null);
   const [error, setError] = useState(null);
   const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
@@ -18,6 +16,7 @@ const PlaylistInput = ({ accessToken }) => {
       window.location.href = '/'; // Redirect to login if no token available
       return;
     }
+    console.log('Access Token:', accessToken);
 
     const fetchPlaylists = async () => {
       setIsLoadingPlaylists(true);
@@ -27,6 +26,7 @@ const PlaylistInput = ({ accessToken }) => {
             Authorization: `Bearer ${accessToken}`,
           },
         });
+        console.log('Fetched Playlists:', response.data.items);
         setPlaylists(response.data.items || []);
       } catch (error) {
         console.error('Error fetching playlists:', error);
@@ -52,6 +52,7 @@ const PlaylistInput = ({ accessToken }) => {
               },
             }
           );
+          console.log('Fetching Tracks from Playlist', response.data.items);
           setTracks(response.data.items || []);
         } catch (error) {
           console.error('Failed to fetch tracks:', error);
@@ -76,24 +77,24 @@ const PlaylistInput = ({ accessToken }) => {
       const trackIds = tracks
         .map((trackItem) => trackItem.track?.id)
         .filter((id) => !!id);
-  
+
       if (trackIds.length === 0) {
         alert('No valid track IDs found.');
         return;
       }
-  
+
       const featuresResponse = await axios.get('http://localhost:5000/api/get-tracks-features', {
         params: { ids: trackIds.join(',') },
       });
-
+  
       const localFeatures = featuresResponse.data || [];
-
+  
       const combinedTracks = tracks.map((trackItem) => {
         const track = trackItem.track;
         if (!track) return null;
-  
+
         const features = localFeatures.find((f) => f.id === track.id);
-  
+
         return {
           id: track.id,
           track_name: track.name,
@@ -117,12 +118,12 @@ const PlaylistInput = ({ accessToken }) => {
           track_genre: features?.track_genre ?? 'Unknown',
         };
       }).filter(Boolean);
-  
+
       const response = await axios.post('http://localhost:5000/api/submit-playlist', {
         playlistId: selectedPlaylist,
         tracks: combinedTracks,
       });
-  
+
       console.log('Recommendations:', response.data.recommendations);
       alert(`Recommendations received: ${JSON.stringify(response.data.recommendations, null, 2)}`);
     } catch (error) {
@@ -130,8 +131,8 @@ const PlaylistInput = ({ accessToken }) => {
       alert('Failed to submit playlist. Please try again.');
     }
   };
-  
-  
+
+
 
 
   return (
@@ -145,6 +146,7 @@ const PlaylistInput = ({ accessToken }) => {
             <option value="">-- PICK FROM THESE --</option>
             {playlists && playlists.length > 0 ? (
               playlists.map((playlist) => {
+                if (!playlist) return null;
                 return (
                   <option key={playlist.id} value={playlist.id}>
                     {playlist.name}
@@ -177,8 +179,6 @@ const PlaylistInput = ({ accessToken }) => {
           </button>
         </div>
       )}
-      {/* Render Recommendations component */}
-      {tracksToRecommend && <Recommendations tracks={tracksToRecommend} />}
     </div>
   );
 };

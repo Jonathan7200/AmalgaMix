@@ -29,18 +29,15 @@ const App = () => {
           element={
             accessToken ? (
               <>
-                {console.log('Access Token in App:', accessToken)} {/* making sure this works */}
-                <PlaylistInput 
-                  accessToken={accessToken} 
-                  onSendToMLModel={handleSendToMLModel} // Pass handler to PlaylistInput
-                />
-                {playlistId && <Recommendations playlistId={playlistId} />} {/* Render recommendations if playlistId is set */}
+                {console.log('Access Token in App:', accessToken)} {/* making sure this works check console log */}
+                <PlaylistInput accessToken={accessToken} />
               </>
             ) : (
               <Login />
             )
           }
         />
+
       </Routes>
     </Router>
   );
