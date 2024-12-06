@@ -77,6 +77,7 @@ async def get_songs(request: GenresRequest):
         results = []
         for genre in genres:
             genre_songs = df[df["track_genre"] == genre]
+            # records specifies that each row of df should be converted into a dictionary, result is list of dictionaries
             selected_songs = genre_songs.sample(min(2, len(genre_songs))).to_dict(orient="records")
             results.extend(selected_songs)
 

@@ -1,5 +1,5 @@
 
-import spotifyService from '../services/spotifyService.js';
+import datasetServices from '../services/datasetServices.js';
 import mlService from '../services/mlService.js';
 import path from 'path';
 import fs from 'fs';
@@ -112,7 +112,7 @@ export const getRecommendations = async (req, res) => {
     const genrePrediction = await mlService.predictGenre(songFeatures);
 
     // Get recommendations from Spotify
-    const recommendations = await spotifyService.getRecommendations(genrePrediction);
+    const recommendations = await datasetServices.getRecommendations(genrePrediction);
 
     // Send recommendations to frontend
     res.status(200).json({ recommendations });
@@ -122,6 +122,7 @@ export const getRecommendations = async (req, res) => {
   }
 };
 
+// Meant to test the abilities of getRecommendation, excluding predictGenre and getSongFeatures
 export const testRecommendations = async (req, res) => {
   try {
     const { genres } = req.body;
@@ -130,8 +131,8 @@ export const testRecommendations = async (req, res) => {
       return res.status(400).json({ error: "Genres must be provided as an array." });
     }
 
-    // Call the spotifyService to get recommendations from FastAPI
-    const recommendations = await spotifyService.getRecommendations(genres);
+    // Call the datasetServices to get recommendations from FastAPI
+    const recommendations = await datasetServices.getRecommendations(genres);
 
     // Send the recommendations back to the client
     res.status(200).json({ recommendations });
