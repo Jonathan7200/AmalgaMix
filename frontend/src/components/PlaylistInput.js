@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Recommendations from './Recomendations';
 
 const PlaylistInput = ({ accessToken }) => {
   const [playlists, setPlaylists] = useState([]);
@@ -20,6 +21,7 @@ const PlaylistInput = ({ accessToken }) => {
       window.location.href = '/'; // Redirect to login if no token available
       return;
     }
+    console.log('Access Token:', accessToken);
 
     const fetchPlaylists = async () => {
       setIsLoadingPlaylists(true);
@@ -84,96 +86,64 @@ const PlaylistInput = ({ accessToken }) => {
 //     setSelectedPlaylist(event.target.value);
 //   };
 
-  const handleSelectionPlaylist = (event) => {
-    setSelectedPlaylist(event.target.value)
+const handleSelectionPlaylist = (event) => {
+  setSelectedPlaylist(event.target.value);
+};
+
+const handleSubmit = async () => {
+  try {
+    console.log('Submitting playlist:', selectedPlaylist);
+
+    await axios.post('http://localhost:5000/api/submit-playlist', {
+      playlistId: selectedPlaylist,
+      tracks: tracks.map((trackItem) => ({
+        id: trackItem.track.id,
+        name: trackItem.track.name,
+        artist: trackItem.track.artists[0]?.name || 'Unknown',
+      })),
+    });
+
+    alert('Playlist submitted successfully!');
+  } catch (error) {
+    console.error('Error submitting playlist:', error);
+    setError('Failed to submit playlist. Please try again.');
   }
+};
 
-  const handleSubmit = async () => {
-    
-    try {
-     
-      console.log('Submitting playlist:', selectedPlaylist);
-      
-      const response = await axios.post('http://localhost:5000/api/submit-playlist', {
-        playlistId: selectedPlaylist,
-        tracks: tracks.map((trackItem) => ({
-          id: trackItem.track.id,
-          name: trackItem.track.name,
-          artist: trackItem.track.artists[0]?.name || 'Unknown',
-        })), // Extract relevant track data
-      });
-  
-      console.log('Backend Response:', response.data);
-      alert('Playlist submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting playlist:', error);
-      alert('Failed to submit playlist. Please try again.');
-    }
-  };
-    
-
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-
-
-
-///// Putting everything together >.<   /////
-  return (
-    <div>
-      <h3>PICK A PLAYLIST</h3>
-      {isLoadingPlaylists ? (
-        <p>Loading playlists...</p>
-      ) : (
-        <div>
+return (
+  <div>
+    <h3>PICK A PLAYLIST</h3>
+    {isLoadingPlaylists ? (
+      <p>Loading playlists...</p>
+    ) : (
+      <div>
         <select value={selectedPlaylist} onChange={handleSelectionPlaylist}>
           <option value="">-- PICK FROM THESE --</option>
-          {playlists && playlists.length > 0 ? (
-            playlists.map((playlist) => {
-              if (!playlist) return null; // Skip null, broke my code earlier T.T
-              return (
-
-
-
-                <option key={playlist.id} value={playlist.id}>
-                  {playlist.name}
-                </option>
-              );
-
-
-
-
-            })
-          ) : (
-            <option disabled>No playlists found.</option>
-          )}
+          {playlists.map((playlist) => (
+            <option key={playlist.id} value={playlist.id}>
+              {playlist.name}
+            </option>
+          ))}
         </select>
-        {selectedPlaylist && 
-          (<div> 
+        {selectedPlaylist && (
+          <div>
             <h3>Tracks in Playlist</h3>
-            {isLoadingTracks ? ( <p>Loading</p>)
-              : tracks.length > 0 ? (
-                <ul>
-                  {tracks.map((trackItem) => {
-                    const track = trackItem.track;
-                    return track ? (
-                      <li key={track.id}>{track.name}</li>
-                    ) : null;
-                  })}
-                </ul>
-              ) :
-              (<p>No tracks in Playlist</p>)}
-            
-            </div>)}
-            <button onClick={handleSubmit} disable = {isLoadingTracks}>
+            {isLoadingTracks ? (
+              <p>Loading...</p>
+            ) : (
+              tracks.map((track) => <p key={track.track.id}>{track.track.name}</p>)
+            )}
+            <button onClick={handleSubmit} disabled={isLoadingTracks}>
               SEND TO ML MODEL
             </button>
-              
-        </div>
-      )};
-    </div>
-  );
+            {/* Add the Recommendations component here */}
+            <Recommendations playlistId={selectedPlaylist} />
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+);
 };
 
 export default PlaylistInput;

@@ -21,9 +21,6 @@ router.get('/test-ml-service', async (req, res) => {
   }
 });
 
-router.get('/submit-playlist', (req, res) => {
-  res.status(200).json({ message: 'This is a placeholder for POST /api/submit-playlist' });
-});
 router.post('/get-recommendations', getRecommendations);
 
 
