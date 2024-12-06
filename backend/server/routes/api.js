@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { submitPlaylist, getRecommendations, getTracksFeatures  } from '../controllers/recommendationController.js';
+import { submitPlaylist, getRecommendations, testRecomedations, getTracksFeatures  } from '../controllers/recommendationController.js';
 
 
 const router = express.Router();
@@ -23,7 +23,9 @@ router.get('/test-ml-service', async (req, res) => {
   }
 });
 
-router.post('/get-recommendations', getRecommendations);
+router.get('/get-recommendations', getRecommendations);
+
+router.get('/test-recommendations', testRecomedations);
 
 
 export default router;

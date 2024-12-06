@@ -25,7 +25,7 @@ app.add_middleware(
 # Load the dataset
 DATASET_PATH = "data/spotify_tracks.csv"
 try:
-    df = pd.read_csv(DATASET_PATH)
+    df = pd.read_csv(DATASET_PATH, index_col=0)
     print("Dataset loaded successfully.")
 except Exception as e:
     print("Error loading dataset:", e)

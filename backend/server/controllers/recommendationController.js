@@ -115,9 +115,28 @@ export const getRecommendations = async (req, res) => {
     const recommendations = await spotifyService.getRecommendations(genrePrediction);
 
     // Send recommendations to frontend
-    res.json({ recommendations });
+    res.status(200).json({ recommendations });
   } catch (error) {
     console.error('Error getting recommendations:', error);
     res.status(500).json({ error: 'Failed to get recommendations' });
+  }
+};
+
+export const testRecommendations = async (req, res) => {
+  try {
+    const { genres } = req.body;
+
+    if (!genres || !Array.isArray(genres)) {
+      return res.status(400).json({ error: "Genres must be provided as an array." });
+    }
+
+    // Call the spotifyService to get recommendations from FastAPI
+    const recommendations = await spotifyService.getRecommendations(genres);
+
+    // Send the recommendations back to the client
+    res.status(200).json({ recommendations });
+  } catch (error) {
+    console.error("Error getting recommendations:", error.message);
+    res.status(500).json({ error: "Failed to get recommendations" });
   }
 };
