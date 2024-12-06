@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import os
 import pandas as pd
+from typing import List, Dict
 
 from helper_functions import predict_playlist_genre
 
@@ -48,8 +49,7 @@ def load_model():
 
 #defines model for incoming requests
 class Features(BaseModel):
-    features: list
-
+    features: List[Dict[str, float]]
 #defines model for incoming genre requests
 class GenresRequest(BaseModel):
     genres: list
@@ -90,8 +90,10 @@ async def get_songs(request: GenresRequest):
 @app.post("/predict")
 async def predict(data: Features):
     try:
+        print("Received data for prediction:", data.features)
         playlist_data = data.features
         res = predict_playlist_genre(model, playlist_data)
+        return {"genre": res}
 
     except Exception as e:
         print(f"Error during prediction: {e}")

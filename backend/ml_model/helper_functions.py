@@ -47,38 +47,55 @@ def predict_top_genres(model, song_features, label_encoder, k):
 # this is the important function. Relies on pre loaded scaler * USE THE RIGHT ONE
 
 def preprocess_song(song_data, scaler):
+    # Define columns
     numeric_cols = [
         "popularity", "duration_ms", "danceability", "energy", "loudness",
-        "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"
+        "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo", "time_signature"
     ]
-
     key_columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     meter_columns = [1, 3, 4, 5]
 
-    song_df = pd.DataFrame([song_data])  # Convert the dictionary to a DataFrame
+    # Convert the dictionary to a DataFrame
+    song_df = pd.DataFrame([song_data])
 
-    song_df = song_df.drop(columns = ['track_id', 'artists', 'album_name', 'track_name'])
-    song_df.drop(columns=["track_genre"], inplace=True)  # Drop the genre column
+    # Drop irrelevant columns
+    song_df = song_df.drop(columns=["track_id", "artists", "album_name", "track_name", "track_genre"], errors="ignore")
 
+    # Map explicit field to binary
     song_df["explicit"] = song_df["explicit"].map({False: 0, True: 1})
 
+    # One-hot encode key columns
     for col in key_columns:
         song_df[f'key_{col}'] = (song_df['key'] == col).astype(int)
+
+    # One-hot encode time_signature as meter columns
     for col in meter_columns:
-        song_df[f'meter_{col}'] = (song_df['time_signature'] == col).astype(int)
-    song_df.drop(columns=['key', 'time_signature'], inplace=True)
+        song_df[f"meter_{col}"] = (song_df["time_signature"] == col).astype(int)
 
-    song_scaled = scaler.transform(song_df[numeric_cols])  # Use the pre-fitted scaler
-    song_scaled_df = pd.DataFrame(song_scaled, columns=numeric_cols)
+    # Scale numeric columns
+    scaled_data = scaler.transform(song_df[numeric_cols])
+    scaled_df = pd.DataFrame(scaled_data, columns=numeric_cols)
 
-    song_df.drop(columns=numeric_cols, inplace=True)
-    song_df_scaled = pd.concat([song_df.reset_index(drop=True), song_scaled_df], axis=1)
+    # Combine scaled numeric columns with other features
+    song_df = song_df.drop(columns=numeric_cols, errors="ignore")
+    song_df = pd.concat([song_df.reset_index(drop=True), scaled_df.reset_index(drop=True)], axis=1)
+
+    # Retain the original time_signature field
+    if "time_signature" in song_data:
+        song_df["time_signature"] = song_data["time_signature"]
 
     # Ensure correct column order
-    column_order = ['explicit', 'mode'] + [f'key_{col}' for col in key_columns] + [f'meter_{col}' for col in meter_columns] + numeric_cols
-    song_df_scaled = song_df_scaled[column_order]
+    column_order = (
+        ['explicit', 'mode'] +
+        [f'key_{col}' for col in key_columns] +
+        [f'meter_{col}' for col in meter_columns] +
+        numeric_cols +
+        ["time_signature"]  # Include time_signature in the final order
+    )
+    song_df = song_df[column_order]
 
-    return song_df_scaled
+    return song_df
+
 
 # playlist predictions
 

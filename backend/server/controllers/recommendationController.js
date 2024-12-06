@@ -7,21 +7,26 @@ import csv from 'csv-parser';
 // Test ML service 
 
 export const submitPlaylist = async (req, res) => {
-  const { playlistId, tracks } = req.body;
-  console.log(`Playlist being submitted: ${playlistId},`)
+  try {
+    const { playlistId, tracks } = req.body;
 
-  if (!playlistId || !tracks) {
-    return res.status(400).json({ error: 'Missing playlist ID or tracks' });
+    console.log(`Playlist being submitted: ${playlistId},`);
+    if (!playlistId || !tracks) {
+      return res.status(400).json({ error: 'Missing playlist ID or tracks' });
+    }
+
+    console.log('Received Playlist ID:', playlistId);
+    console.log('Received Tracks:', tracks);
+
+    // Call getRecommendations with the playlist data
+    req.body = { playlist: tracks }; // Prepare data for getRecommendations
+    return await getRecommendations(req, res);
+  } catch (error) {
+    console.error('Error submitting playlist:', error);
+    res.status(500).json({ error: 'Failed to process playlist' });
   }
-
-  console.log('Received Playlist ID:', playlistId);
-  console.log('Received Tracks:', tracks);
-
-  // (Optional) Process playlist data or forward it to ML service
-  res.status(200).json({ message: 'Playlist received successfully!', data: { playlistId, tracks } });
-  
-
 };
+
 
 
 
@@ -107,12 +112,13 @@ export const getRecommendations = async (req, res) => {
     const { playlist } = req.body;
 
     if (!playlist || !Array.isArray(playlist)) {
+      console.error('Invalid playlist data:', req.body);
       return res.status(400).json({ error: 'Invalid playlist data provided.' });
     }
 
     // Extract song features
     const songFeatures = playlist.map((song) => ({
-      explicit: song.explicit,
+      explicit: song.explicit ? 1 : 0,
       mode: song.mode,
       popularity: song.popularity,
       danceability: song.danceability,
@@ -125,39 +131,41 @@ export const getRecommendations = async (req, res) => {
       valence: song.valence,
       tempo: song.tempo,
       duration_ms: song.duration_ms,
-      key: `key_${song.key}`,
-      meter: `meter_${song.time_signature}`,
+      time_signature: song.time_signature,
+      key: song.key,
     }));
+
+    console.log('Sending features to ML service:', JSON.stringify(songFeatures, null, 2));
 
     // Send features to the ML service for genre prediction
     const genrePrediction = await mlService.predictGenre(songFeatures);
+    console.log('ML Service Response:', genrePrediction);
 
     // Use the predicted genre to get recommendations from Spotify
-    const recommendations = await datasetServices.getRecommendations(genrePrediction.genre);
+    const recommendations = await datasetServices.getRecommendations([genrePrediction.genre]);
+    console.log('Recommendations:', recommendations);
 
-    // Send recommendations back to the frontend
     res.status(200).json({ recommendations });
   } catch (error) {
-    console.error('Error getting recommendations:', error.message);
+    console.error('Error getting recommendations:', error.message || error.response?.data || error);
     res.status(500).json({ error: 'Failed to get recommendations' });
   }
 };
-// Meant to test the abilities of getRecommendation, excluding predictGenre and getSongFeatures
-export const testRecommendations = async (req, res) => {
-  try {
-    const { genres } = req.body;
 
+
+// Meant to test the abilities of getRecommendation, excluding predictGenre and getSongFeatures
+export const testRecommendations = async (genres) => {
+  try {
     if (!genres || !Array.isArray(genres)) {
-      return res.status(400).json({ error: "Genres must be provided as an array." });
+      throw new Error('Genres must be provided as an array.');
     }
 
-    // Call the datasetServices to get recommendations from FastAPI
+    // Call the datasetServices to get recommendations
     const recommendations = await datasetServices.getRecommendations(genres);
 
-    // Send the recommendations back to the client
-    res.status(200).json({ recommendations });
+    return recommendations; // Return recommendations instead of using `res`
   } catch (error) {
     console.error("Error getting recommendations:", error.message);
-    res.status(500).json({ error: "Failed to get recommendations" });
+    throw new Error('Failed to get recommendations');
   }
 };

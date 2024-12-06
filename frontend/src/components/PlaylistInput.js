@@ -75,17 +75,15 @@ const PlaylistInput = ({ accessToken }) => {
 
   const handleSubmit = async () => {
     try {
-      // Extract track IDs from the playlist tracks
       const trackIds = tracks
-        .map((trackItem) => trackItem.track?.id) // Use track ID as a string
-        .filter((id) => !!id); // Exclude null or undefined values
+        .map((trackItem) => trackItem.track?.id)
+        .filter((id) => !!id);
   
       if (trackIds.length === 0) {
         alert('No valid track IDs found.');
         return;
       }
   
-      // Call backend endpoint with track IDs
       const featuresResponse = await axios.get('http://localhost:5000/api/get-tracks-features', {
         params: { ids: trackIds.join(',') },
       });
@@ -96,18 +94,16 @@ const PlaylistInput = ({ accessToken }) => {
         const track = trackItem.track;
         if (!track) return null;
   
-        // Find matching features from the local CSV results
-        const features = localFeatures.find((f) => f.id === track.id); // Match as strings
+        const features = localFeatures.find((f) => f.id === track.id);
   
         return {
           id: track.id,
           track_name: track.name,
           artist: track.artists[0]?.name || 'Unknown',
-          albumb_name: track.album.name,
+          album_name: track.album.name,
           popularity: track.popularity,
           duration_ms: track.duration_ms,
           explicit: track.explicit,
-          // Use features from local CSV if found, else null or default
           danceability: features?.danceability ?? null,
           energy: features?.energy ?? null,
           key: features?.key ?? null,
@@ -122,20 +118,21 @@ const PlaylistInput = ({ accessToken }) => {
           time_signature: features?.time_signature ?? null,
           track_genre: features?.track_genre ?? 'Unknown',
         };
-      }).filter(Boolean); // Remove any null entries
+      }).filter(Boolean);
   
       const response = await axios.post('http://localhost:5000/api/submit-playlist', {
         playlistId: selectedPlaylist,
         tracks: combinedTracks,
       });
   
-      console.log('Backend Response:', response.data);
-      alert('Playlist submitted successfully!');
+      console.log('Recommendations:', response.data.recommendations);
+      alert(`Recommendations received: ${JSON.stringify(response.data.recommendations, null, 2)}`);
     } catch (error) {
       console.error('Error submitting playlist:', error);
       alert('Failed to submit playlist. Please try again.');
     }
   };
+  
   
 
 
