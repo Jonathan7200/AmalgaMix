@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import numpy as np
 import pickle
 import os
+import pandas as pd
 
 app = FastAPI()
 
@@ -21,6 +22,14 @@ app.add_middleware(
     allow_headers=["*"],  # Allow headers
 )
 
+# Load the dataset
+DATASET_PATH = "data/spotify_tracks.csv"
+try:
+    df = pd.read_csv(DATASET_PATH)
+    print("Dataset loaded successfully.")
+except Exception as e:
+    print("Error loading dataset:", e)
+    df = None
 
 ##MIGHT NEED TO CHANGE THIS TO USE THE LIFESPAN EVENT HANDLER 
 ## for now this works tho so hehe 
@@ -39,6 +48,10 @@ def load_model():
 class Features(BaseModel):
     features: list
 
+#defines model for incoming genre requests
+class GenresRequest(BaseModel):
+    genres: list
+
 # Test endpoint to verify FastAPI is running
 @app.get("/testfastapi")
 async def ping():
@@ -48,6 +61,28 @@ async def ping():
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+# Set up get songs post request 
+@app.post('/get-songs')
+async def get_songs(request: GenresRequest):
+    if df is None:
+        raise HTTPException(status_code=500, detail="Dataset not loaded.")
+
+    genres = request.genres
+    if not genres:
+        raise HTTPException(status_code=400, detail="Genres must be provided.")
+
+    try:
+        # Filter dataset by genres
+        results = []
+        for genre in genres:
+            genre_songs = df[df["track_genre"] == genre]
+            selected_songs = genre_songs.sample(min(2, len(genre_songs))).to_dict(orient="records")
+            results.extend(selected_songs)
+
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict")
 async def predict(data: Features):
