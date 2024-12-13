@@ -5,9 +5,10 @@ import numpy as np
 import pickle
 import os
 import pandas as pd
-from typing import List, Dict
+from typing import List
+import joblib
 
-from helper_functions import predict_playlist_genre
+from helper_functions import predict_playlist_genre  # Ensure this function is defined in helper_functions.py
 
 app = FastAPI()
 
@@ -21,8 +22,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow HTTP methods
-    allow_headers=["*"],  # Allow headers
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Load the dataset
@@ -34,8 +35,38 @@ except Exception as e:
     print("Error loading dataset:", e)
     df = None
 
-##MIGHT NEED TO CHANGE THIS TO USE THE LIFESPAN EVENT HANDLER 
-## for now this works tho so hehe 
+# Define a Pydantic model that matches the structure of each track in "features"
+class TrackFeatures(BaseModel):
+    track_id: str
+    artists: str
+    album_name: str
+    track_name: str
+    popularity: int
+    duration_ms: int
+    explicit: bool
+    danceability: float
+    energy: float
+    key: int
+    loudness: float
+    mode: int
+    speechiness: float
+    acousticness: float
+    instrumentalness: float
+    liveness: float
+    valence: float
+    tempo: float
+    time_signature: int
+    track_genre: str
+
+# Model for incoming "features"
+class Features(BaseModel):
+    features: List[TrackFeatures]
+
+# Model for incoming genres
+class GenresRequest(BaseModel):
+    genres: List[str]
+
+# Use startup event handler to load the model
 @app.on_event("startup")
 def load_model():
     global model
@@ -45,26 +76,17 @@ def load_model():
             model = pickle.load(f)
         print("Model loaded successfully.")
     except Exception as e:
-        print("Error loading model")
+        print(f"Error loading model: {e}")
+        model = None  # If model fails to load, set to None
 
-#defines model for incoming requests
-class Features(BaseModel):
-    features: List[Dict[str, float]]
-#defines model for incoming genre requests
-class GenresRequest(BaseModel):
-    genres: list
-
-# Test endpoint to verify FastAPI is running
 @app.get("/testfastapi")
 async def ping():
     return {"message": "FastAPI from ML service"}
 
-# Root endpoint
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-# Set up get songs post request 
 @app.post('/get-songs')
 async def get_songs(request: GenresRequest):
     if df is None:
@@ -75,11 +97,12 @@ async def get_songs(request: GenresRequest):
         raise HTTPException(status_code=400, detail="Genres must be provided.")
 
     try:
-        # Filter dataset by genres
         results = []
         for genre in genres:
             genre_songs = df[df["track_genre"] == genre]
-            # records specifies that each row of df should be converted into a dictionary, result is list of dictionaries
+            if len(genre_songs) == 0:
+                continue
+            # Sample up to 2 songs for the given genre
             selected_songs = genre_songs.sample(min(2, len(genre_songs))).to_dict(orient="records")
             results.extend(selected_songs)
 
@@ -89,15 +112,32 @@ async def get_songs(request: GenresRequest):
 
 @app.post("/predict")
 async def predict(data: Features):
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model is not loaded.")
+
     try:
         print("Received data for prediction:", data.features)
-        playlist_data = data.features
+
+        # Process the input data
+        playlist_data = [track.dict() for track in data.features]
+        print("Processed playlist data:", playlist_data)
+
+        # Make the prediction
         res = predict_playlist_genre(model, playlist_data)
-        return {"genre": res}
 
+        print("Model predictions:", res)
+
+        # Ensure res is JSON serializable
+        if isinstance(res, np.ndarray):
+            res = res.tolist()  # Convert NumPy array to list
+        elif not isinstance(res, list):
+            res = [str(r) for r in res]  # Ensure it's a list of strings
+
+        return {"genre": list(res)}
+
+    except HTTPException as http_ex:
+        print("HTTPException:", http_ex.detail)
+        raise http_ex
     except Exception as e:
-        print(f"Error during prediction: {e}")
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
-    
-
-
+        print("Error during prediction:", e)
+        raise HTTPException(status_code=500, detail=f"Unexpected server error: {str(e)}")

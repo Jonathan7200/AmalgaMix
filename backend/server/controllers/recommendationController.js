@@ -4,7 +4,18 @@ import mlService from '../services/mlService.js';
 import path from 'path';
 import fs from 'fs';
 import csv from 'csv-parser';
+import axios from 'axios';
+
 // Test ML service 
+
+async function predictGenre(songFeatures) {
+  // Adjust the URL to point to your ML service endpoint
+  const response = await axios.post('http://localhost:8000/predict', {
+    features: songFeatures,
+  });
+  return response.data; // Expecting something like { genre: ["acoustic", "pop"] }
+}
+
 
 export const submitPlaylist = async (req, res) => {
   try {
@@ -56,7 +67,7 @@ export const getTracksFeatures = async (req, res) => {
         if (requestedIds.includes(data.track_id)) {
           results.push({
             id: data.track_id,
-            artist: data.artists,
+            artists: data.artists,
             album_name: data.album_name,
             track_name: data.track_name,
             popularity: parseInt(data.popularity, 10),
@@ -118,31 +129,37 @@ export const getRecommendations = async (req, res) => {
 
     // Extract song features
     const songFeatures = playlist.map((song) => ({
-      explicit: song.explicit ? 1 : 0,
-      mode: song.mode,
+      
+      track_id: song.id,
+      track_name: song.track_name,
+      artists: song.artist,
+      album_name: song.album_name,
       popularity: song.popularity,
+      duration_ms: song.duration_ms,
+      explicit: song.explicit,
       danceability: song.danceability,
       energy: song.energy,
+      key: song.key,
       loudness: song.loudness,
+      mode: song.mode,
       speechiness: song.speechiness,
       acousticness: song.acousticness,
       instrumentalness: song.instrumentalness,
       liveness: song.liveness,
       valence: song.valence,
       tempo: song.tempo,
-      duration_ms: song.duration_ms,
       time_signature: song.time_signature,
-      key: song.key,
+      track_genre: song.track_genre,
     }));
 
     console.log('Sending features to ML service:', JSON.stringify(songFeatures, null, 2));
 
     // Send features to the ML service for genre prediction
-    const genrePrediction = await mlService.predictGenre(songFeatures);
+    const genrePrediction = await predictGenre(songFeatures);
     console.log('ML Service Response:', genrePrediction);
 
     // Use the predicted genre to get recommendations from Spotify
-    const recommendations = await datasetServices.getRecommendations([genrePrediction.genre]);
+    const recommendations = await datasetServices.getRecommendations(genrePrediction.genre);
     console.log('Recommendations:', recommendations);
 
     res.status(200).json({ recommendations });

@@ -25,8 +25,7 @@ def predict_playlist_genre(nn_model, playlist_data, k=3):
     print(aggregated_playlist)
 
     # Run the genre prediction
-    top_k_genres = predict_top_genres(nn_model, aggregated_playlist, label_encoder, k)
-    return top_k_genres
+    return predict_top_genres(nn_model, aggregated_playlist, label_encoder, k)
 
 def predict_top_genres(model, song_features, label_encoder, k):
 
