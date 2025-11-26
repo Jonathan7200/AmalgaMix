@@ -1,7 +1,7 @@
 ﻿# AmalgaMix  
 **AI-Powered Music Recommendation Web App**
 
-AmalgaMix is a **full-stack application** that connects to Spotify, analyzes playlists, and generates personalized recommendations. It combines **React, Node.js, FastAPI, and Keras** to serve an end-to-end machine learning pipeline.
+AmalgaMix is a **full-stack application** that connects to Spotify, analyzes playlists, and generates personalized recommendations. It combines **React, Node.js, FastAPI, and Keras** to serve an end-to-end machine learning pipeline!
 
 ---
 
@@ -72,9 +72,9 @@ Two architectures were explored:
 - 400 epochs (avg. convergence ~200)  
 
 **Results**  
-- Logistic regression baseline: **30% accuracy**  
+- Logistic regression baseline: **30% accuracy** 
 - **Dense model**: 76% top-1 accuracy, 81% top-3  
-- **Conv1D model**: 42.5% top-1, 66.8% top-3  
+- **Conv1D model**: 42.5% top-1, 66.8% top-3
 
 ---
 
@@ -106,4 +106,5 @@ cd ../backend && npm install
 
 # ML Model API
 cd ../ml_model && pip install -r requirements.txt
+
 
